@@ -1,0 +1,131 @@
+# Sta nella repo pubblica TD-Booking-Suite-per-Windows (la vetrina): compila il sorgente della repo TD-Booking-Suite-Windows
+# e pubblica qui l'MSI, come fa TD Stokk. Così la build gira sui minuti gratuiti di una repo pubblica anche se il
+# sorgente è privato, il rilascio si fa direttamente qui e i programmi installati lo scaricano senza credenziali.
+# Il sorgente non passa mai di qui: solo il registro della build è pubblico.
+# Secret di questa repo: SORGENTE_TOKEN (token con Contents in sola lettura su TD-Booking-Suite-Windows e su
+# TD-Booking-Suite, il suo sottomodulo); facoltativi quelli della firma (WINDOWS_CERT_*, AZURE_*, ARTIFACT_SIGNING_*).
+# Questo file si tiene in vetrina/.github/workflows/build.yml del sorgente e si copia qui, stessa cartella.
+name: Build
+
+on:
+  workflow_dispatch:
+    inputs:
+      rilascio:
+        description: "Pubblica il rilascio con l'MSI"
+        type: boolean
+        default: false
+      ramo:
+        description: "Ramo o tag del sorgente"
+        default: main
+
+permissions:
+  contents: read
+
+concurrency:
+  group: build
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: windows-latest
+    permissions:
+      contents: write  # il rilascio e la pagina si pubblicano da questo job
+    timeout-minutes: 60
+    steps:
+      - name: Sorgente
+        uses: actions/checkout@v4
+        with:
+          repository: Giuseppe-sciarra/TD-Booking-Suite-Windows
+          token: ${{ secrets.SORGENTE_TOKEN }}
+          ref: ${{ inputs.ramo || 'main' }}
+          submodules: true
+      - uses: actions/setup-dotnet@v4
+        with: { dotnet-version: "8.0.x" }
+      - name: Compila
+        run: dotnet build net/TDBooking.sln -c Release
+      - name: Prove
+        run: dotnet test net/tests/TD.Tests -c Release --no-build
+      - name: Finestre (screenshot)
+        shell: pwsh
+        run: |
+          # the runner's screen is 1024x768: the windows of the screenshots came out cramped
+          try { Set-DisplayResolution -Width 1920 -Height 1080 -Force } catch { "risoluzione non cambiata: $_" }
+          $exe = "net/src/TD.App/bin/Release/net8.0-windows/TDBookingSuite.exe"
+          $p = Start-Process $exe -ArgumentList "--demo", "$PWD/net/tests/demo", "--shot", "$PWD/shots" -PassThru -RedirectStandardError err.txt -RedirectStandardOutput out.txt
+          if (-not $p.WaitForExit(120000)) { $p.Kill(); throw "le finestre non si sono chiuse" }
+          "uscita: $($p.ExitCode)"; Get-Content err.txt, out.txt -ErrorAction SilentlyContinue
+          $log = Join-Path $env:TEMP "TDBookingSuite-errore.txt"
+          if (Test-Path $log) { Get-Content $log; New-Item -ItemType Directory -Force shots | Out-Null; Copy-Item $log shots/ }
+          Get-ChildItem shots
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with: { name: screenshot, path: shots }
+      # the MSI of the C# program and the same test a client's installation goes through (net/installer)
+      - name: Cache dei download
+        uses: actions/cache@v4
+        with:
+          path: build/cache
+          key: downloads-net-${{ hashFiles('net/installer/build.ps1') }}
+      - name: MSI
+        id: msi
+        env:
+          # code signing only with these secrets (windows/firma.ps1); without them the MSI is not signed
+          WINDOWS_CERT_PFX: ${{ secrets.WINDOWS_CERT_PFX }}
+          WINDOWS_CERT_PASSWORD: ${{ secrets.WINDOWS_CERT_PASSWORD }}
+          AZURE_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
+          AZURE_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
+          AZURE_CLIENT_SECRET: ${{ secrets.AZURE_CLIENT_SECRET }}
+          ARTIFACT_SIGNING_ENDPOINT: ${{ secrets.ARTIFACT_SIGNING_ENDPOINT }}
+          ARTIFACT_SIGNING_ACCOUNT: ${{ secrets.ARTIFACT_SIGNING_ACCOUNT }}
+          ARTIFACT_SIGNING_PROFILE: ${{ secrets.ARTIFACT_SIGNING_PROFILE }}
+        run: |
+          pwsh net/installer/build.ps1
+          "version=$(([xml](Get-Content net/Directory.Build.props)).Project.PropertyGroup.Version | Where-Object { $_ } | Select-Object -First 1)" >> $env:GITHUB_OUTPUT
+      - name: Prova di installazione
+        run: pwsh net/installer/smoke-test.ps1
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: TD-Booking-Suite-3-Windows
+          path: |
+            dist/*.msi
+            dist/*.zip
+            *.log
+          retention-days: 7
+
+      # Solo se chiesto (Pubblica il rilascio), e solo dopo la prova di installazione: v<versione>, il rilascio principale.
+      # I programmi installati lo cercano qui per «Aggiorna ora» (Rpc/Licenza.cs).
+      - name: SHA-256 dell'MSI
+        if: inputs.rilascio
+        shell: bash
+        run: cd dist && for f in *.msi; do sha256sum "$f" > "$f.sha256"; done && cat *.sha256
+      - name: Rilascio con l'MSI
+        if: inputs.rilascio
+        shell: bash
+        env:
+          TAG: v${{ steps.msi.outputs.version }}
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          if gh release view "$TAG" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
+            gh release upload "$TAG" dist/*.msi dist/*.msi.sha256 --repo "$GITHUB_REPOSITORY" --clobber
+          else
+            gh release create "$TAG" dist/*.msi dist/*.msi.sha256 --repo "$GITHUB_REPOSITORY" --target main --latest \
+              --title "TD Booking Suite per Windows $TAG" \
+              --notes "Un solo MSI per Un PC solo, per il server e per le postazioni: la scelta si fa durante l'installazione; installato sopra una 2.x la aggiorna e tiene i dati. 7 giorni di prova. Windows lo segnala perché non è ancora firmato: Ulteriori informazioni, poi Esegui comunque."
+          fi
+      # la pagina di questa repo: README, schermate di questa build e istruzioni, mai il codice
+      - name: Pagina della vetrina
+        if: inputs.rilascio
+        shell: bash
+        env:
+          TAG: v${{ steps.msi.outputs.version }}
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          git clone -q "https://x-access-token:${GH_TOKEN}@github.com/${GITHUB_REPOSITORY}.git" vetrina-repo
+          bash net/installer/vetrina.sh vetrina-repo shots
+          cd vetrina-repo
+          git config user.name "TD Booking Suite"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add README.md screenshots *.pdf 2>/dev/null || git add README.md screenshots
+          git diff --cached --quiet || git commit -q -m "TD Booking Suite per Windows $TAG"
+          git push -q origin HEAD:main
