@@ -12,11 +12,17 @@ TD Booking Suite gestisce appuntamenti, tavoli, camere, lezioni ed eventi. Si in
 | **Agenda del giorno**: una colonna per operatore con la sua foto, per tutti o per uno solo; un clic su uno spazio libero e la prenotazione parte con operatore, giorno e ora | **Operatori**: la foto, i trattamenti che fanno con durata e prezzo loro, i giorni e orari, le ferie |
 | ![Settimana](screenshots/settimana.png) | ![Mese](screenshots/mese.png) |
 | **Settimana**: i sette giorni ora per ora, un colore per operatore | **Mese**: quanti appuntamenti ha ogni giorno, un clic apre il giorno |
-| ![Scheda cliente](screenshots/cliente.png) | ![Al lavoro](screenshots/al-lavoro.png) |
+| ![Nuova prenotazione](screenshots/nuova-prenotazione.png) | ![Prenotazione](screenshots/prenotazione.png) |
+| **Nuova prenotazione**: servizio, operatore, giorno e ora liberi, il cliente cercato o nuovo | **La prenotazione**: tutti i dettagli, sposta, completa, annulla, le note interne e la scheda del cliente |
+| ![Cassa](screenshots/cassa.png) | ![Clienti](screenshots/clienti.png) |
+| **Cassa**: tocchi i servizi, scegli l'operatore e mandi il conto al registratore di cassa, che stampa lo scontrino | **Clienti**: la rubrica con ricerca, etichette e VIP, le visite e l'ultima volta |
+| ![Elenco delle prenotazioni](screenshots/prenotazioni.png) | ![Report](screenshots/report.png) |
+| **Elenco**: le prenotazioni per periodo, stato e nome | **Report**: incassi, servizi più fatti e operatori, in Excel e PDF |
+| ![Scheda cliente](screenshots/cliente.png) | ![Dashboard](screenshots/dashboard.png) |
 | **Scheda cliente**: recapiti, sconto, speso, appuntamenti in programma e ultimo trattamento | **Dashboard**: prenotazioni di oggi e dei prossimi giorni, agenda e clienti a portata di clic |
 | ![Configurazione guidata](screenshots/guida.png) | ![Chi lavora nell'attività](screenshots/guida-io.png) |
 | **Configurazione guidata**: licenza, attività, backup e postazioni, un passo alla volta | **Uno o due account**: lo usi tu con un account solo, oppure lo installi per un cliente con il suo |
-| ![Accesso](screenshots/accesso.png) | ![Tema scuro](screenshots/dashboard-scuro.png) |
+| ![Accesso](screenshots/accesso.png) | ![Tema scuro](screenshots/scuro.png) |
 | **Accesso** con username o email, o con un clic per il titolare dal PC del programma: resta collegato, e **Esci** per cambiare account | **Tema chiaro o scuro**, con il colore che preferisci |
 | ![Postazioni](screenshots/postazioni.png) | ![Backup](screenshots/backup.png) |
 | **Postazioni**: ogni PC si registra una volta con un codice di 6 cifre | **Backup automatici**, cifrati, su disco esterno, NAS o server remoto |
