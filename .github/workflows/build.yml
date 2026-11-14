@@ -83,15 +83,15 @@ jobs:
           "version=$(([xml](Get-Content net/Directory.Build.props)).Project.PropertyGroup.Version | Where-Object { $_ } | Select-Object -First 1)" >> $env:GITHUB_OUTPUT
       - name: Prova di installazione
         run: pwsh net/installer/smoke-test.ps1
+      # solo i registri della prova d'installazione, come TD Stokk e TD Velo: l'MSI non passa dallo spazio di Actions
+      # (in una repo pubblica lo scaricherebbe chiunque), esce solo nel rilascio con «Pubblica il rilascio»
       - uses: actions/upload-artifact@v4
         if: always()
+        continue-on-error: true
         with:
-          name: TD-Booking-Suite-3-Windows
-          path: |
-            dist/*.msi
-            dist/*.zip
-            *.log
-          retention-days: 7
+          name: registri
+          path: "*.log"
+          retention-days: 1
 
       # Solo se chiesto (Pubblica il rilascio), e solo dopo la prova di installazione: v<versione>, il rilascio principale.
       # I programmi installati lo cercano qui per «Aggiorna ora» (Rpc/Licenza.cs).
