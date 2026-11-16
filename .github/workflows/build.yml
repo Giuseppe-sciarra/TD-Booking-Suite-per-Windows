@@ -111,7 +111,7 @@ jobs:
           else
             gh release create "$TAG" dist/*.msi dist/*.msi.sha256 --repo "$GITHUB_REPOSITORY" --target main --latest \
               --title "TD Booking Suite per Windows $TAG" \
-              --notes "Un solo MSI per Un PC solo, per il server e per le postazioni: la scelta si fa durante l'installazione; installato sopra una 2.x la aggiorna e tiene i dati. 7 giorni di prova. Windows lo segnala perché non è ancora firmato: Ulteriori informazioni, poi Esegui comunque."
+              --notes "Un solo MSI per Un PC solo, per il server e per le postazioni: la scelta si fa durante l'installazione; installato sopra una 2.x la aggiorna e tiene i dati. 7 giorni di prova. Firmato digitalmente da Tastiere Digitali."
           fi
       # la pagina di questa repo: README, schermate di questa build e istruzioni, mai il codice
       - name: Pagina della vetrina

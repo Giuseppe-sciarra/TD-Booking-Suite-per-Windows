@@ -58,13 +58,9 @@ TD Booking Suite gestisce appuntamenti, tavoli, camere, lezioni ed eventi. Si in
 
 ## Installare
 
-### Windows ti avvisa: si installa lo stesso
+### Firmato digitalmente
 
-Il file non ha ancora una firma digitale, quindi Windows non sa chi lo pubblica e lo segnala:
-
-1. **Edge o Chrome** dicono che il file *non viene scaricato comunemente*. Apri il menu **…** del download, poi **Mantieni**, **Mostra altro** e **Mantieni comunque**.
-2. **Windows ha protetto il PC**, la finestra blu di SmartScreen: premi **Ulteriori informazioni** e poi **Esegui comunque**.
-3. Se il file arriva da una chiavetta o da una email e non parte: tasto destro, **Proprietà**, spunta **Sblocca**, **OK**.
+Il file d'installazione e il programma sono **firmati digitalmente** da Tastiere Digitali: prima di installare, Windows mostra il nostro nome come editore verificato.
 
 ### Scegli come usarlo
 
